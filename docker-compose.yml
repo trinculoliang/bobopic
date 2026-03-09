@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  photo-organizer:
+    image: ghcr.io/你的用户名/photo-organizer:main
+    container_name: photo-organizer
+    volumes:
+      # 左侧是本地实际路径，右侧是容器内路径（固定）
+      - "C:/Users/liang/相机照片:/data/input"
+      - "D:/照片库/归档:/data/output"
+      - "D:/照片库/备份:/data/backup"
+    environment:
+      # 可选：覆盖默认设置
+      DRY_RUN: "false"           # true=预览，false=实际执行
+      BACKUP_FOLDER: "/data/backup"  # 如果不需要备份，设为""空字符串
+    command: organize            # 或 preview
