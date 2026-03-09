@@ -1,0 +1,5 @@
+# 预览模式
+docker-compose run --rm photo-organizer preview
+
+# 实际执行
+docker-compose run --rm photo-organizer organize
