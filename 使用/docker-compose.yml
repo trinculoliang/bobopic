@@ -1,32 +1,66 @@
+# Docker Compose 文件格式版本，3.8 支持最新特性且兼容性好
 version: "3.8"
 
+# 定义所有服务（容器）
 services:
+  # 服务名称，自定义命名，这里叫 bobopic（你的容器名）
   bobopic:
+    # 使用的镜像地址，从 GitHub Packages 拉取
+    # ghcr.io/trinculoliang/bobopic:main 表示你的仓库构建的 main 标签版本
     image: ghcr.io/trinculoliang/bobopic:main
+    
+    # 容器运行时的名称，用于 docker ps 查看和管理
     container_name: bobopic
+    
+    # 重启策略：除非手动停止，否则总是自动重启
+    # 防止 NAS 重启后容器停止运行
     restart: unless-stopped
-    # 威联通需要显式指定用户权限
+    
+    # 以特定用户身份运行容器，解决威联通权限问题
+    # 1000:100 表示 UID 1000（用户），GID 100（组）
+    # 确保容器有权限读写 NAS 的共享文件夹
     user: "1000:100"
+    
+    # 卷（目录）映射，将 NAS 实际路径挂载到容器内路径
     volumes:
-      # 使用绝对路径，确保正确挂载
-      - type: bind
-        source: /share/ZFS23_DATA/Container/bobopic/in
-        target: /data/input
+      # 输入目录映射：NAS 照片源文件位置
+      - type: bind                    # 绑定挂载类型，直接映射主机路径
+        source: /share/ZFS23_DATA/Container/bobopic/in   # NAS 实际路径（ZFS 存储池）
+        target: /data/input           # 容器内路径（脚本中 INPUT_FOLDER 的默认值）
+        bind:                         # 绑定挂载的额外配置
+          propagation: rslave         # 传播模式：rslave 表示从主机继承挂载属性
+      
+      # 输出目录映射：整理后的照片存放位置
+      - type: bind                    # 同上，绑定挂载
+        source: /share/ZFS23_DATA/Container/bobopic/out   # NAS 输出路径
+        target: /data/output          # 容器内路径（脚本中 OUTPUT_FOLDER 的默认值）
         bind:
-          propagation: rslave
-      - type: bind
-        source: /share/ZFS23_DATA/Container/bobopic/out
-        target: /data/output
+          propagation: rslave         # 同上，继承主机挂载属性
+      
+      # 备份目录映射：重命名前的原文件备份
+      - type: bind                    # 同上，绑定挂载
+        source: /share/ZFS23_DATA/Container/bobopic/bak   # NAS 备份路径
+        target: /data/backup          # 容器内路径（脚本中 BACKUP_FOLDER 的默认值）
         bind:
-          propagation: rslave
-      - type: bind
-        source: /share/ZFS23_DATA/Container/bobopic/bak
-        target: /data/backup
-        bind:
-          propagation: rslave
+          propagation: rslave         # 同上，继承主机挂载属性
+    
+    # 环境变量，传递给容器内的脚本使用
     environment:
+      # 预览模式开关："true"=只预览不执行，"false"=实际执行
+      # 首次运行建议 true，确认无误后再改为 false
       DRY_RUN: "true"
+      
+      # 输入文件夹路径（容器内路径，与 volumes 中的 target 对应）
       INPUT_FOLDER: "/data/input"
+      
+      # 输出文件夹路径（容器内路径）
       OUTPUT_FOLDER: "/data/output"
+      
+      # 备份文件夹路径（容器内路径）
+      # 如果不需要备份，设为 "" 空字符串
       BACKUP_FOLDER: "/data/backup"
+    
+    # 容器启动时执行的命令，覆盖 Dockerfile 中的默认 CMD
+    # preview = 预览模式（安全测试）
+    # organize = 实际执行（会移动文件）
     command: preview
