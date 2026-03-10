@@ -8,17 +8,20 @@ services:
     
     volumes:
       - type: bind
-        source: /share/ZFS23_DATA/Container/bobopic/in
+        # source: /share/ZFS23_DATA/Container/bobopic/in
+        source: /share/ZFS20_DATA/Documents/Albums/BOBO/phone
         target: /data/input
         bind:
           propagation: rslave
       - type: bind
-        source: /share/ZFS23_DATA/Container/bobopic/out
+        # source: /share/ZFS23_DATA/Container/bobopic/out
+        source: /share/ZFS20_DATA/Documents/Albums/BOBO
         target: /data/output
         bind:
           propagation: rslave
       - type: bind
-        source: /share/ZFS23_DATA/Container/bobopic/bak
+        # source: /share/ZFS23_DATA/Container/bobopic/bak
+        source: /share/ZFS20_DATA/Documents/Albums/BOBO/bak
         target: /data/backup
         bind:
           propagation: rslave
