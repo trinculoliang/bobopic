@@ -4,13 +4,29 @@ services:
   bobopic:
     image: ghcr.io/trinculoliang/bobopic:main
     container_name: bobopic
+    restart: unless-stopped
+    # 威联通需要显式指定用户权限
+    user: "1000:100"
     volumes:
-      # 左侧是本地实际路径，右侧是容器内路径（固定）
-      - "/Container/bobopic/in:/data/input"
-      - "/Container/bobopic/out:/data/output"
-      - "/Container/bobopic/bak:/data/backup"
+      # 使用绝对路径，确保正确挂载
+      - type: bind
+        source: /share/ZFS23_DATA/Container/bobopic/in
+        target: /data/input
+        bind:
+          propagation: rslave
+      - type: bind
+        source: /share/ZFS23_DATA/Container/bobopic/out
+        target: /data/output
+        bind:
+          propagation: rslave
+      - type: bind
+        source: /share/ZFS23_DATA/Container/bobopic/bak
+        target: /data/backup
+        bind:
+          propagation: rslave
     environment:
-      # 可选：覆盖默认设置
-      DRY_RUN: "false"           # true=预览，false=实际执行
-      BACKUP_FOLDER: "/data/backup"  # 如果不需要备份，设为""空字符串
-    command: organize            # 或 preview
+      DRY_RUN: "true"
+      INPUT_FOLDER: "/data/input"
+      OUTPUT_FOLDER: "/data/output"
+      BACKUP_FOLDER: "/data/backup"
+    command: preview
