@@ -54,21 +54,24 @@ except ImportError:
 
 # ==================== 配置区域（修改这里）====================
 
+# 从环境变量读取配置，支持 Docker 部署
+import os
+
 # 输入文件夹：照片、视频所在目录
-# 示例: "/Users/bobo/Downloads/相机照片" 或 r"c:\Users\liang\Downloads\1"
-INPUT_FOLDER = r"c:\Users\liang\Downloads\1"
+INPUT_FOLDER = os.environ.get('INPUT_FOLDER', r"c:\Users\liang\Downloads\1")
 
-# 输出文件夹：年份文件夹的上级目录（如不存在则自动创建）
-# 示例: "/Users/bobo/照片库" 或 r"c:\Users\liang\Downloads\2"
-OUTPUT_FOLDER = r"c:\Users\liang\Downloads\2"
+# 输出文件夹：年份文件夹的上级目录
+OUTPUT_FOLDER = os.environ.get('OUTPUT_FOLDER', r"c:\Users\liang\Downloads\2")
 
-# 备份文件夹：重命名前将原文件复制到此目录（如不存在则自动创建）
+# 备份文件夹：重命名前将原文件复制到此目录
 # 设置为 None 或空字符串表示不备份
-# 示例: "/Users/bobo/备份" 或 r"c:\Users\liang\Downloads\backup"
-BACKUP_FOLDER = r"c:\Users\liang\Downloads\bak"
+backup_env = os.environ.get('BACKUP_FOLDER', r"c:\Users\liang\Downloads\bak")
+BACKUP_FOLDER = backup_env if backup_env else None
 
-# 预览模式：设置为 True 只预览不执行，False 则实际执行
-DRY_RUN = False
+# 预览模式：从环境变量读取，默认为 False
+dry_run_env = os.environ.get('DRY_RUN', 'false')
+DRY_RUN = dry_run_env.lower() in ('true', '1', 'yes', 'on')
+
 
 # ==================== 格式配置（可选修改）====================
 
@@ -504,4 +507,5 @@ if __name__ == '__main__':
             sys.exit(1)
     
     # 执行整理
+
     organize_files(INPUT_FOLDER, OUTPUT_FOLDER, BACKUP_FOLDER, DRY_RUN)
