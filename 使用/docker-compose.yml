@@ -60,7 +60,4 @@ services:
       # 如果不需要备份，设为 "" 空字符串
       BACKUP_FOLDER: "/data/backup"
     
-    # 容器启动时执行的命令，覆盖 Dockerfile 中的默认 CMD
-    # preview = 预览模式（安全测试）
-    # organize = 实际执行（会移动文件）
-    command: preview
+
