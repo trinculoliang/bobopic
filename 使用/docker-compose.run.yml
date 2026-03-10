@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  bobopic:
+    image: ghcr.io/trinculoliang/bobopic:main
+    container_name: bobopic-run-once
+    user: "1000:100"
+    
+    volumes:
+      - type: bind
+        source: /share/ZFS23_DATA/Container/bobopic/in
+        target: /data/input
+        bind:
+          propagation: rslave
+      - type: bind
+        source: /share/ZFS23_DATA/Container/bobopic/out
+        target: /data/output
+        bind:
+          propagation: rslave
+      - type: bind
+        source: /share/ZFS23_DATA/Container/bobopic/bak
+        target: /data/backup
+        bind:
+          propagation: rslave
+    
+    environment:
+      INPUT_FOLDER: "/data/input"
+      OUTPUT_FOLDER: "/data/output"
+      BACKUP_FOLDER: "/data/backup"
+    
+    # 定时任务直接执行，不预览
+    command: organize
+    restart: "no"
