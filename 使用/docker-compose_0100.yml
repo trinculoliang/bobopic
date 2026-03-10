@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  bobopic:
+    image: ghcr.io/trinculoliang/bobopic:main
+    container_name: bobopic
+    restart: unless-stopped
+    user: "1000:100"
+    
+    # 卷映射配置（保持不变）
+    volumes:
+      - type: bind
+        source: /share/ZFS23_DATA/Container/bobopic/in
+        target: /data/input
+        bind:
+          propagation: rslave
+      - type: bind
+        source: /share/ZFS23_DATA/Container/bobopic/out
+        target: /data/output
+        bind:
+          propagation: rslave
+      - type: bind
+        source: /share/ZFS23_DATA/Container/bobopic/bak
+        target: /data/backup
+        bind:
+          propagation: rslave
+    
+    # 环境变量
+    environment:
+      DRY_RUN: "false"           # 改为实际执行模式
+      INPUT_FOLDER: "/data/input"
+      OUTPUT_FOLDER: "/data/output"
+      BACKUP_FOLDER: "/data/backup"
+    
+    # 覆盖默认命令：先等待，再定时执行
+    # 使用 sh -c 执行多行命令
+    command: >
+      sh -c '
+        echo "⏰ 照片整理定时服务启动，每天凌晨 1:00 执行";
+        while true; do
+          # 获取当前时间
+          current_hour=$$(date +%H);
+          current_min=$$(date +%M);
+          
+          # 检查是否是 01:00
+          if [ "$$current_hour" = "01" ] && [ "$$current_min" = "00" ]; then
+            echo "🚀 $$(date) 开始执行整理...";
+            python /app/organize_media.py;
+            echo "✅ $$(date) 执行完成，等待 23 小时...";
+            sleep 23h;  # 执行后等待 23 小时，避免重复执行
+          else
+            # 计算到 01:00 还有多少秒
+            current_epoch=$$(date +%s);
+            target_epoch=$$(date -d "tomorrow 01:00" +%s 2>/dev/null || date -v+1d -v1H -v0M +%s);
+            sleep_seconds=$$((target_epoch - current_epoch));
+            
+            echo "⏳ 等待到凌晨 1:00，还有 $$((sleep_seconds / 60)) 分钟...";
+            sleep $$sleep_seconds;
+          fi;
+        done
+      '
