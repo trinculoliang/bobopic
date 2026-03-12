@@ -22,6 +22,7 @@ show_help() {
     echo ""
 }
 
+# 根据参数执行
 case "${1:-}" in
     help|--help|-h)
         show_help
