@@ -5,29 +5,29 @@ FROM python:3.11.8-alpine3.19 AS builder
 
 WORKDIR /app
 
-# 安装编译依赖（Alpine 版本）
+# 安装编译依赖
 RUN apk add --no-cache \
     gcc \
     musl-dev \
     jpeg-dev \
     zlib-dev \
-    libffi-dev \
-    && pip install --no-cache-dir --user pillow==10.2.0
+    libffi-dev
+
+# 安装 Pillow 到标准路径（非 --user）
+RUN pip install --no-cache-dir --target=/packages pillow==10.2.0
 
 # ==================== 运行阶段 ====================
 FROM python:3.11.8-alpine3.19 AS runtime
 
-# 安装运行时库（无编译工具，体积更小）
+# 安装运行时库
 RUN apk add --no-cache \
     libjpeg-turbo \
     zlib \
     libffi \
     bash
 
-# 从构建阶段复制 Python 包
-COPY --from=builder /root/.local /root/.local
-ENV PATH=/root/.local/bin:$PATH \
-    PYTHONPATH=/root/.local/lib/python3.11/site-packages
+# 从构建阶段复制 Python 包（使用标准路径）
+COPY --from=builder /packages /usr/local/lib/python3.11/site-packages
 
 WORKDIR /app
 
